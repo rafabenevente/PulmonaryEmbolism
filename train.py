@@ -32,7 +32,6 @@ def do_train(is_kaggle=False, batch=1):
         path_to_output = os.getcwd()
         path_to_data = os.path.join(path_to_project, "data")
     else:
-        batch = int(sys.argv[2])
         path_to_project = "../input/rsna-str-pulmonary-embolism-detection/"
         path_to_output = "."
         path_to_data = path_to_project
