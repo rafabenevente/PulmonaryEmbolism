@@ -76,7 +76,7 @@ class ImageDataLoader(object):
 
         return images, labels
 
-    def to_tf_dataset(self, batch_size: int, shuffle: bool, seed: int = 42) -> tf.data.Dataset:
+    def to_tf_dataset(self, batch_size: int, seed: int = 42) -> tf.data.Dataset:
         dataset = tf.data.Dataset.from_tensor_slices((self._image_paths, self._labels))
         for img, lab in dataset:
             self._tf_load_image(img, lab)
@@ -84,8 +84,6 @@ class ImageDataLoader(object):
             self._tf_load_image, num_parallel_calls=tf.data.experimental.AUTOTUNE
         )
 
-        if shuffle:
-            dataset = dataset.shuffle(buffer_size=len(self._image_paths), seed=seed)
         if self._cache:
             dataset = dataset.cache()
         dataset = dataset.repeat()
