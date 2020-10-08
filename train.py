@@ -62,7 +62,7 @@ def do_train(is_kaggle=False, batch=1):
     path_to_prepress = os.path.join(path_to_experiment, "pre_process")
     if not os.path.exists(path_to_prepress):
         print("Criando pasta de destino")
-        os.mkdir(path_to_prepress)
+        os.makedirs(path_to_prepress)
         print("Realizando pre-processamento")
         for file, name in zip(train_df["file_path"].values, train_df["SOPInstanceUID"].values):
             image = pre_process.dicom_to_jpg(file)
@@ -91,7 +91,7 @@ def do_train(is_kaggle=False, batch=1):
 
     data_execucao = datetime.datetime.today().strftime("%d-%m_%H-%M")
 
-    os.mkdir(os.path.join(path_to_model, data_execucao))
+    os.makedirs(os.path.join(path_to_model, data_execucao))
     path_to_result = os.path.join(path_to_model, data_execucao)
 
     weight_file = "weights.h5"
