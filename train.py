@@ -32,7 +32,7 @@ def do_train(is_kaggle=False, batch=1):
         path_to_output = os.getcwd()
         path_to_data = os.path.join(path_to_project, "data")
     else:
-        path_to_project = "../../input/rsna-str-pulmonary-embolism-detection/"
+        path_to_project = "../input/rsna-str-pulmonary-embolism-detection/"
         path_to_output = "."
         path_to_data = path_to_project
 
@@ -42,6 +42,7 @@ def do_train(is_kaggle=False, batch=1):
     train_df = pd.read_csv(os.path.join(path_to_data, "train.csv"))
     train_df["file_path"] = train_df.apply(lambda x:
                                            os.path.join(path_to_data,
+                                                        "train" if is_kaggle else "",
                                                         x["StudyInstanceUID"] if is_kaggle else "",
                                                         x["SeriesInstanceUID"] if is_kaggle else "",
                                                         f'{x["SOPInstanceUID"]}.dcm'),
@@ -52,6 +53,7 @@ def do_train(is_kaggle=False, batch=1):
         test_df = pd.read_csv(os.path.join(path_to_data, "test.csv"))
         test_df["file_path"] = test_df.apply(lambda x:
                                              os.path.join(path_to_data,
+                                                          "test"  if is_kaggle else "",
                                                           x["StudyInstanceUID"] if is_kaggle else "",
                                                           x["SeriesInstanceUID"] if is_kaggle else "",
                                                           f'{x["SOPInstanceUID"]}.dcm'),
