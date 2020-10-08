@@ -19,6 +19,7 @@ from test_data_loader import TestDataLoader
 
 
 def do_train(is_kaggle=False, batch=1):
+    print("Iniciando treinamento")
     # Configs of the training
     size = (512, 512)
     shape = (512, 512, 3)
@@ -58,6 +59,7 @@ def do_train(is_kaggle=False, batch=1):
                                              axis=1)
         print(test_df.shape)
 
+    print("Iniciando pre-processamento")
     path_to_prepress = os.path.join(path_to_experiment, "pre_process")
     if not os.path.exists(path_to_prepress):
         os.mkdir(path_to_prepress)
@@ -94,6 +96,7 @@ def do_train(is_kaggle=False, batch=1):
     weight_file = "weights.h5"
     weights_filepath = os.path.join(path_to_result, "" + weight_file)
 
+    print("Carregando modelo")
     net = model_generator(batch=batch,
                           size=size,
                           shape=shape,
