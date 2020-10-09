@@ -18,11 +18,13 @@ from model_generator import model_generator
 from test_data_loader import TestDataLoader
 
 
-def do_train(is_kaggle=False, batch=1):
+def do_train(is_kaggle=False,
+             batch=1,
+             size=(512, 512),
+             shape = (512, 512, 3)):
     print("Iniciando treinamento")
     # Configs of the training
-    size = (512, 512)
-    shape = (512, 512, 3)
+
     initial_layers_freezed = 0
     freeze_base_model = True
 

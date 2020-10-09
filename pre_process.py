@@ -1,10 +1,16 @@
+from typing import List
+
 import numpy as np
 import os
 import matplotlib.pyplot as plt
 import pydicom
+import cv2
 
-def _transform_to_hu(slice):
+def _transform_to_hu(slice, size):
     image = slice.pixel_array.astype(np.int16)
+
+    if image.shape != size:
+        image = cv2.resize(image, size)
 
     # Set air values to 0
     image[image <= - 1000] = 0
@@ -32,9 +38,10 @@ def _set_manual_window(hu_image, custom_center, custom_width):
 
 
 def dicom_to_jpg(path: str,
+                 size: List,
                  apply_custom_windowing: bool = True):
     dicom = pydicom.dcmread(path)
-    image = _transform_to_hu(dicom)
+    image = _transform_to_hu(dicom, size)
 
     if apply_custom_windowing:
         channel_1 = _set_manual_window(hu_image=image.copy(), custom_center=-600, custom_width=1500)
