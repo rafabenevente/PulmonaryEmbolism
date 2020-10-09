@@ -21,7 +21,7 @@ from test_data_loader import TestDataLoader
 def do_train(is_kaggle=False,
              batch=1,
              size=(512, 512),
-             shape = (512, 512, 3)):
+             shape=(512, 512, 3)):
     print("Iniciando treinamento")
     # Configs of the training
 
@@ -55,7 +55,7 @@ def do_train(is_kaggle=False,
         test_df = pd.read_csv(os.path.join(path_to_data, "test.csv"))
         test_df["file_path"] = test_df.apply(lambda x:
                                              os.path.join(path_to_data,
-                                                          "test"  if is_kaggle else "",
+                                                          "test" if is_kaggle else "",
                                                           x["StudyInstanceUID"] if is_kaggle else "",
                                                           x["SeriesInstanceUID"] if is_kaggle else "",
                                                           f'{x["SOPInstanceUID"]}.dcm'),
@@ -69,7 +69,7 @@ def do_train(is_kaggle=False,
         os.makedirs(path_to_prepress)
         print("Realizando pre-processamento")
         for file, name in zip(train_df["file_path"].values, train_df["SOPInstanceUID"].values):
-            image = pre_process.dicom_to_jpg(file)
+            image = pre_process.dicom_to_jpg(file, size=size)
             cv2.imwrite(os.path.join(path_to_prepress, f"{name}.jpg"), image)
 
     train_df["pre_processed_file"] = train_df["SOPInstanceUID"].map(lambda x: os.path.join(path_to_prepress,
