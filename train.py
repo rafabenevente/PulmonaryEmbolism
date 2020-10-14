@@ -18,14 +18,17 @@ from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping, Re
 from model_generator import model_generator
 from test_data_loader import TestDataLoader
 
+
 def get_file_path(study_id, series_id, sop_id):
     file = glob.glob(f"../input/rsna-str-pe-detection-jpeg-256/train-jpegs/{study_id}/{series_id}/*{sop_id}*.jpg")
     return file[0]
 
+
 def do_train(is_kaggle=False,
              batch=1,
              size=(512, 512),
-             shape=(512, 512, 3)):
+             shape=(512, 512, 3),
+             do_pre_process=False):
     print("Iniciando treinamento")
     # Configs of the training
 
@@ -47,10 +50,10 @@ def do_train(is_kaggle=False,
 
     train_df = pd.read_csv(os.path.join(path_to_data, "train.csv"))
     if is_kaggle:
-        train_df["file_path"] = train_df.apply(lambda x:
-                                               get_file_path(x["StudyInstanceUID"], x["SeriesInstanceUID"],
-                                                             x["SOPInstanceUID"]),
-                                               axis=1)
+        train_df["pre_processed_file"] = train_df.apply(lambda x:
+                                                        get_file_path(x["StudyInstanceUID"], x["SeriesInstanceUID"],
+                                                                      x["SOPInstanceUID"]),
+                                                        axis=1)
     else:
         train_df["file_path"] = train_df.apply(lambda x:
                                                os.path.join(path_to_data,
@@ -72,15 +75,16 @@ def do_train(is_kaggle=False,
                                              axis=1)
         print(test_df.shape)
 
-    print("Iniciando pre-processamento")
-    path_to_prepress = os.path.join(path_to_experiment, "pre_process")
-    if not os.path.exists(path_to_prepress):
-        print("Criando pasta de destino")
-        os.makedirs(path_to_prepress)
-        print("Realizando pre-processamento")
-        for file, name in zip(train_df["file_path"].values, train_df["SOPInstanceUID"].values):
-            image = pre_process.dicom_to_jpg(file, size=size)
-            cv2.imwrite(os.path.join(path_to_prepress, f"{name}.jpg"), image)
+    if do_pre_process:
+        print("Iniciando pre-processamento")
+        path_to_prepress = os.path.join(path_to_experiment, "pre_process")
+        if not os.path.exists(path_to_prepress):
+            print("Criando pasta de destino")
+            os.makedirs(path_to_prepress)
+            print("Realizando pre-processamento")
+            for file, name in zip(train_df["file_path"].values, train_df["SOPInstanceUID"].values):
+                image = pre_process.dicom_to_jpg(file, size=size)
+                cv2.imwrite(os.path.join(path_to_prepress, f"{name}.jpg"), image)
 
     train_df["pre_processed_file"] = train_df["SOPInstanceUID"].map(lambda x: os.path.join(path_to_prepress,
                                                                                            f"{x}.jpg"))
@@ -89,14 +93,14 @@ def do_train(is_kaggle=False,
                                               test_size=0.25,
                                               random_state=42,
                                               stratify=train_df[["pe_present_on_image",
-                                                                "rv_lv_ratio_gte_1",
-                                                                "rv_lv_ratio_lt_1",
-                                                                "leftsided_pe",
-                                                                "chronic_pe",
-                                                                "rightsided_pe",
-                                                                "acute_and_chronic_pe",
-                                                                "central_pe",
-                                                                "indeterminate"]])
+                                                                 "rv_lv_ratio_gte_1",
+                                                                 "rv_lv_ratio_lt_1",
+                                                                 "leftsided_pe",
+                                                                 "chronic_pe",
+                                                                 "rightsided_pe",
+                                                                 "acute_and_chronic_pe",
+                                                                 "central_pe",
+                                                                 "indeterminate"]])
     else:
         valid_df = train_df.iloc[-1:]
         train_df = train_df.iloc[:-1]
