@@ -78,7 +78,7 @@ def do_train(is_kaggle=False,
         train_df, valid_df = train_test_split(train_df,
                                               test_size=0.25,
                                               random_state=42,
-                                              stratify=train_df["pe_present_on_image",
+                                              stratify=train_df[["pe_present_on_image",
                                                                 "rv_lv_ratio_gte_1",
                                                                 "rv_lv_ratio_lt_1",
                                                                 "leftsided_pe",
@@ -86,7 +86,7 @@ def do_train(is_kaggle=False,
                                                                 "rightsided_pe",
                                                                 "acute_and_chronic_pe",
                                                                 "central_pe",
-                                                                "indeterminate"])
+                                                                "indeterminate"]])
     else:
         valid_df = train_df.iloc[-1:]
         train_df = train_df.iloc[:-1]
