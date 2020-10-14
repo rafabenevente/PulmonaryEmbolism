@@ -7,6 +7,7 @@ import sys
 import glob
 import pre_process
 import cv2
+import glob
 import seaborn as sn
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 
@@ -17,6 +18,9 @@ from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping, Re
 from model_generator import model_generator
 from test_data_loader import TestDataLoader
 
+def get_file_path(study_id, series_id, sop_id):
+    file = glob.glob(f"../input/rsna-str-pe-detection-jpeg-256/train-jpegs/{study_id}/{series_id}/*{sop_id}*.jpg")
+    return file[0]
 
 def do_train(is_kaggle=False,
              batch=1,
@@ -42,13 +46,19 @@ def do_train(is_kaggle=False,
     path_to_experiment = os.path.join(path_to_output, "experiments")
 
     train_df = pd.read_csv(os.path.join(path_to_data, "train.csv"))
-    train_df["file_path"] = train_df.apply(lambda x:
-                                           os.path.join(path_to_data,
-                                                        "train" if is_kaggle else "",
-                                                        x["StudyInstanceUID"] if is_kaggle else "",
-                                                        x["SeriesInstanceUID"] if is_kaggle else "",
-                                                        f'{x["SOPInstanceUID"]}.dcm'),
-                                           axis=1)
+    if is_kaggle:
+        train_df["file_path"] = train_df.apply(lambda x:
+                                               get_file_path(x["StudyInstanceUID"], x["SeriesInstanceUID"],
+                                                             x["SOPInstanceUID"]),
+                                               axis=1)
+    else:
+        train_df["file_path"] = train_df.apply(lambda x:
+                                               os.path.join(path_to_data,
+                                                            "train" if is_kaggle else "",
+                                                            x["StudyInstanceUID"] if is_kaggle else "",
+                                                            x["SeriesInstanceUID"] if is_kaggle else "",
+                                                            f'{x["SOPInstanceUID"]}.dcm'),
+                                               axis=1)
     print(train_df.shape)
 
     if is_kaggle:
