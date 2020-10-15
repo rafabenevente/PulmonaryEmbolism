@@ -8,6 +8,7 @@ import glob
 import pre_process
 import cv2
 import glob
+import numpy as np
 import seaborn as sn
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 
@@ -19,9 +20,8 @@ from model_generator import model_generator
 from test_data_loader import TestDataLoader
 
 
-def get_file_path(study_id, series_id, sop_id):
-    file = glob.glob(f"../input/rsna-str-pe-detection-jpeg-256/train-jpegs/{study_id}/{series_id}/*{sop_id}*.jpg")
-    return file[0]
+def get_file_path(file_list, sop_id):
+    return next((x for x in file_list if sop_id in x), '')
 
 
 def do_train(is_kaggle=False,
@@ -50,9 +50,11 @@ def do_train(is_kaggle=False,
 
     train_df = pd.read_csv(os.path.join(path_to_data, "train.csv"))
     if is_kaggle:
+        print("buscando arquivos")
+        file_list = glob.glob("../input/rsna-str-pe-detection-jpeg-256/train-jpegs/*/*/*.jpg")
+        print("mapeando localização das imagens")
         train_df["pre_processed_file"] = train_df.apply(lambda x:
-                                                        get_file_path(x["StudyInstanceUID"], x["SeriesInstanceUID"],
-                                                                      x["SOPInstanceUID"]),
+                                                        get_file_path(file_list, x["SOPInstanceUID"]),
                                                         axis=1)
     else:
         train_df["file_path"] = train_df.apply(lambda x:
@@ -65,6 +67,7 @@ def do_train(is_kaggle=False,
     print(train_df.shape)
 
     if is_kaggle:
+        print("Carregando dataset de teste")
         test_df = pd.read_csv(os.path.join(path_to_data, "test.csv"))
         test_df["file_path"] = test_df.apply(lambda x:
                                              os.path.join(path_to_data,
@@ -86,21 +89,25 @@ def do_train(is_kaggle=False,
                 image = pre_process.dicom_to_jpg(file, size=size)
                 cv2.imwrite(os.path.join(path_to_prepress, f"{name}.jpg"), image)
 
-    train_df["pre_processed_file"] = train_df["SOPInstanceUID"].map(lambda x: os.path.join(path_to_prepress,
-                                                                                           f"{x}.jpg"))
+        train_df["pre_processed_file"] = train_df["SOPInstanceUID"].map(lambda x: os.path.join(path_to_prepress,
+                                                                                               f"{x}.jpg"))
     if is_kaggle:
-        train_df, valid_df = train_test_split(train_df,
+        print("Realizando split dos dados")
+        unique_df = train_df[["StudyInstanceUID", "pe_present_on_image"]]
+        unique_df = unique_df.groupby(by=["StudyInstanceUID"]).count()
+        unique_df["pe_bool"] = np.where(unique_df["pe_present_on_image"] > 0, True, False)
+
+
+        train_to_merge, valid_to_merge = train_test_split(unique_df,
                                               test_size=0.25,
                                               random_state=42,
-                                              stratify=train_df[["pe_present_on_image",
-                                                                 "rv_lv_ratio_gte_1",
-                                                                 "rv_lv_ratio_lt_1",
-                                                                 "leftsided_pe",
-                                                                 "chronic_pe",
-                                                                 "rightsided_pe",
-                                                                 "acute_and_chronic_pe",
-                                                                 "central_pe",
-                                                                 "indeterminate"]])
+                                              stratify=unique_df[["pe_bool"]])
+
+        print("Realizando merge apos estratificação")
+        train_df = pd.merge(left=train_df, right=train_to_merge, how="inner", on="StudyInstanceUID")
+        valid_df = pd.merge(left=train_df, right=valid_to_merge, how="inner", on="StudyInstanceUID")
+
+
     else:
         valid_df = train_df.iloc[-1:]
         train_df = train_df.iloc[:-1]
