@@ -94,7 +94,7 @@ def do_train(is_kaggle=False,
     if is_kaggle:
         print("Realizando split dos dados")
         unique_df = train_df[["StudyInstanceUID", "pe_present_on_image"]]
-        unique_df = unique_df.groupby(by=["StudyInstanceUID"]).count()
+        unique_df = unique_df.groupby(by=["StudyInstanceUID"]).sum()
         unique_df["pe_bool"] = np.where(unique_df["pe_present_on_image"] > 0, True, False)
 
 
