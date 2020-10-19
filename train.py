@@ -20,8 +20,8 @@ from model_generator import model_generator
 from test_data_loader import TestDataLoader
 
 
-def get_file_path(file_list, sop_id):
-    return next((x for x in file_list if sop_id in x), '')
+def get_file_path(study_id, series_id, sop_id):
+    return glob.glob(f"../input/rsna-str-pe-detection-jpeg-256/train-jpegs/{study_id}/{series_id}/*{sop_id}.jpg")[0]
 
 
 def do_train(is_kaggle=False,
@@ -50,11 +50,11 @@ def do_train(is_kaggle=False,
 
     train_df = pd.read_csv(os.path.join(path_to_data, "train.csv"))
     if is_kaggle:
-        print("buscando arquivos")
-        file_list = glob.glob("../input/rsna-str-pe-detection-jpeg-256/train-jpegs/*/*/*.jpg")
         print("mapeando localização das imagens")
         train_df["pre_processed_file"] = train_df.apply(lambda x:
-                                                        get_file_path(file_list, x["SOPInstanceUID"]),
+                                                        get_file_path(x["StudyInstanceUID"],
+                                                                      x["SeriesInstanceUID"],
+                                                                      x["SOPInstanceUID"]),
                                                         axis=1)
     else:
         train_df["file_path"] = train_df.apply(lambda x:
@@ -66,17 +66,17 @@ def do_train(is_kaggle=False,
                                                axis=1)
     print(train_df.shape)
 
-    if is_kaggle:
-        print("Carregando dataset de teste")
-        test_df = pd.read_csv(os.path.join(path_to_data, "test.csv"))
-        test_df["file_path"] = test_df.apply(lambda x:
-                                             os.path.join(path_to_data,
-                                                          "test" if is_kaggle else "",
-                                                          x["StudyInstanceUID"] if is_kaggle else "",
-                                                          x["SeriesInstanceUID"] if is_kaggle else "",
-                                                          f'{x["SOPInstanceUID"]}.dcm'),
-                                             axis=1)
-        print(test_df.shape)
+    # if is_kaggle:
+    #     print("Carregando dataset de teste")
+    #     test_df = pd.read_csv(os.path.join(path_to_data, "test.csv"))
+    #     test_df["file_path"] = test_df.apply(lambda x:
+    #                                          os.path.join(path_to_data,
+    #                                                       "test" if is_kaggle else "",
+    #                                                       x["StudyInstanceUID"] if is_kaggle else "",
+    #                                                       x["SeriesInstanceUID"] if is_kaggle else "",
+    #                                                       f'{x["SOPInstanceUID"]}.dcm'),
+    #                                          axis=1)
+    #     print(test_df.shape)
 
     if do_pre_process:
         print("Iniciando pre-processamento")
