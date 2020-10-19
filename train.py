@@ -144,11 +144,14 @@ def do_train(is_kaggle=False,
                                                "rightsided_pe",
                                                "acute_and_chronic_pe",
                                                "central_pe",
-                                               "indeterminate"], augmenter=None)
+                                               "indeterminate"],
+                                 augmenter=None)
     # augmenter=train_augmentation())
 
     train_loader = train_data.to_tf_dataset(batch_size=batch)
-    val_data = ImageDataLoader(df=valid_df, images_dir_path="", image_size=size,
+    val_data = ImageDataLoader(df=valid_df,
+                               images_dir_path="",
+                               image_size=size,
                                image_filename_column="pre_processed_file",
                                label_column=["pe_present_on_image",
                                              "rv_lv_ratio_gte_1",
@@ -158,7 +161,8 @@ def do_train(is_kaggle=False,
                                              "rightsided_pe",
                                              "acute_and_chronic_pe",
                                              "central_pe",
-                                             "indeterminate"], augmenter=None)
+                                             "indeterminate"],
+                               augmenter=None)
     val_loader = val_data.to_tf_dataset(batch_size=batch)
 
     net.save_model_as_json()
@@ -270,4 +274,7 @@ def do_train(is_kaggle=False,
 
 
 if __name__ == "__main__":
-    do_train()
+    print(pd.__version__)
+    do_train(size=(256, 256),
+             shape=(256, 256, 3),
+             do_pre_process=True)
