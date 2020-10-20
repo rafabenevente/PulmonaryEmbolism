@@ -96,12 +96,12 @@ def do_train(is_kaggle=False,
         unique_df = train_df[["StudyInstanceUID", "pe_present_on_image"]]
         unique_df = unique_df.groupby(by=["StudyInstanceUID"]).sum()
         unique_df["pe_bool"] = np.where(unique_df["pe_present_on_image"] > 0, True, False)
-
+        unique_df = unique_df.drop(columns=["pe_present_on_image"])
 
         train_to_merge, valid_to_merge = train_test_split(unique_df,
-                                              test_size=0.25,
-                                              random_state=42,
-                                              stratify=unique_df[["pe_bool"]])
+                                                          test_size=0.25,
+                                                          random_state=42,
+                                                          stratify=unique_df[["pe_bool"]])
 
         print("Realizando merge apos estratificação")
         train_df = pd.merge(left=train_df, right=train_to_merge, how="inner", on="StudyInstanceUID")
